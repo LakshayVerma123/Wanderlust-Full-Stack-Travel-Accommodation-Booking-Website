@@ -1,26 +1,28 @@
+if(process.env.NODE_ENV != "production") {
+    require('dotenv').config();
+}
+
 const mongoose = require("mongoose");
 const initData = require("./data.js");
 const Listing = require("../models/listing.js");
 
-const MONGO_URL = "mongodb://127.0.0.1:27017/wanderlust";
+const dbUrl = process.env.ATLASDB_URL;
 
-main()
-    .then(() => {
-        console.log("MongoDB connected");
-    })
-    .catch((err) => {
-        console.log(err);
-    });
+main().then(() => {
+    console.log("connected to DB");
+}).catch((err) => {
+    console.log(err);
+});
+
 async function main() {
-    await mongoose.connect(MONGO_URL);
+    await mongoose.connect(dbUrl);
 }
 
-// delete all the existing data and insert the new data from data.json 
-const initDB = async () =>{
+const initDB = async () => {
     await Listing.deleteMany({});
-    await Listing.insertMany(initData.data); // insertMany is used to insert multiple documents at once in data.js file we will call this function to initialize the database with the data from data.json, where export is in object form
+    initData.data = initData.data.map((obj) => ({...obj, owner: "65f498de938bbbafdcf350b8"}))
+    await Listing.insertMany(initData.data);
     console.log("data was initialized");
 }
 
-initDB(); // call the function to initialize the database with the data from data.json
-
+// initDB();
